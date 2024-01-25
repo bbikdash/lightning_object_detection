@@ -98,7 +98,6 @@ After weights are converted to `onnx`, rename them with the following convention
 - [ ] Implement `BasePredictionWriter` as alternative to using `demo.py`
 - [x] Verify onnx conversion and correct inference within the new Lightning YOLOX framework
 - [x] Completed README and tutorials for how to train with new data
-- [ ] Label Vesper vehicle data and finetune YOLOX-S on said data for improved performance
 - [x] Implement YOLOX C++ postprocessing
 - [ ] Resetting optimizer/learning rate scheduler states after loading a checkpoint in Lightning CLI
 - [ ] Mosaic augmentations??
