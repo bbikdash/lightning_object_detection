@@ -105,7 +105,6 @@ After weights are converted to `onnx`, rename them with the following convention
 - [ ] Add EMA capability
 - [ ] Add distributed parallel training capability (DDP)
 - [x] Refactor Dataset classes to remove unnecessary outputs from `__getitem__()`
-- [x] Add scripts and Dockerfile in separate folder to allow easy conversion to DLC
 
 
 ## Authors
