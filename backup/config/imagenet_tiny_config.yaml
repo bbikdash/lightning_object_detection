@@ -1,0 +1,75 @@
+# @author Bassam Bikdash
+# February 2023
+# PROGRAM level args
+# Program arguments (data_path, cluster_email, etc...)
+data:
+  class_path: imagenet_data_module.ImagenetDataModule             # Path to the Pytorch Lightning DataModule to use for data preparation
+  init_args: 
+    imagenet_root: /mnt/data/Datasets/ILSVRC_tiny/
+    image_size: [224, 224]
+    transforms:                                 # Path to Albumentation transform .yaml files
+      - &train_transforms "./train_transforms.yaml"
+      - &valid_transforms "./valid_transforms.yaml"
+      - &test_transforms  "./test_transforms.yaml"
+    num_workers: 12
+    batch_size: 8                               # Batch size during training
+    verify: True                                # Visualize data and label after loading and before training. Used to verify data augmentations
+
+
+# ckpt_path: None                                 # Path to weights with which to initialize the model
+
+# Model specific args
+# These arguments will be used in the creation of the model architecture
+model:
+  class_path: models.backbones.DarkNet19
+  init_args:
+    num_classes: 10
+    num_channels: 3
+
+optimizer:
+  class_path: torch.optim.AdamW
+  init_args:
+    lr: 1.0e-04
+
+lr_scheduler:
+  class_path: torch.optim.lr_scheduler.ExponentialLR   # 
+  init_args:
+    gamma: 0.95                                   # Learning rate decay
+
+# Training specific args
+# These arguments are parsed internally by pl.Trainer and correspond to basic attributes of the Trainer class
+# chkp_path: null                                 # Path to weights with which to initialize the model
+trainer:
+  max_epochs: 30                                # Number of epochs to train model for. Can/should change
+  
+  accelerator: gpu                              # Device to use for training. Can be `cpu`, `gpu`, or `tpu` 
+  devices: -1                                   # Number of devices to use for training. -1 uses all available devices on the system
+
+  logger:
+    class_path: TensorBoardLogger
+    init_args:
+      save_dir: ./                              # Saves metric folders to the following directory. Don't change
+      name: ImageNetTinyPretrain1.0                 # Saves current training checkpoints and logs to this dir. This one you can change
+      default_hp_metric: False
+  enable_checkpointing: True
+  callbacks:
+    - class_path: LearningRateMonitor
+      init_args:
+        logging_interval: epoch
+    - class_path: ModelCheckpoint
+      init_args:
+        save_top_k: 3
+        monitor: val_f1
+        mode: max
+        every_n_epochs: 1
+    - class_path: TQDMProgressBar # lightning.pytorch.callbacks.progress.TQDMProgressBar
+      init_args:
+        refresh_rate: 20
+    - class_path: __main__.AlbumentTransformSavingCallback
+      init_args:
+        transforms_path:
+          - *train_transforms
+          - *valid_transforms
+          - *test_transforms
+  log_every_n_steps: 50                          # Number of training steps elapsed before logging
+

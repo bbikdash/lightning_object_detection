@@ -1,0 +1,17 @@
+git+https://github.com/albumentations-team/albumentations
+imageio>=2.18.0
+lightning>=2.1.2
+loguru>=0.7.0
+matplotlib>=3.7.2
+numpy>=1.24.4
+onnx>=1.14.0
+onnx_simplifier>=0.4.10
+onnxruntime>=1.15.1
+opencv_python>=4.7.0.72
+opencv_python_headless>=4.7.0.72
+psutil>=5.9.4
+pytorch_lightning>=2.1.2
+PyYAML>=6.0
+torch>=2.0.1
+torchmetrics>=1.0.1
+torchvision>=0.15.2

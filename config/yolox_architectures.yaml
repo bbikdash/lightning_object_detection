@@ -1,0 +1,153 @@
+# Default YOLOX architecture configurations. The number of classes is specified from config.yaml
+# DO NOT CHANGE
+###################################################################################################
+yolox_nano:
+  backbone:
+    class: YOLOPAFPN
+    init_args:
+      depth: 0.33
+      width: 0.25
+      in_channels: [256, 512, 1024]
+      act: silu
+      depth_wise: True
+  head:
+    class: YOLOXHead
+    init_args:
+      width: 0.25
+      strides: [8, 16, 32]
+      in_channels: [256, 512, 1024]
+      act: silu
+      depth_wise: True
+      use_l1: False
+
+yolox_tiny:
+  backbone:
+    class: YOLOPAFPN
+    init_args:
+      depth: 0.33
+      width: 0.375
+      in_channels: [256, 512, 1024]
+      act: silu
+      depth_wise: False
+  head:
+    class: YOLOXHead
+    init_args:
+      width: 0.375
+      strides: [8, 16, 32]
+      in_channels: [256, 512, 1024]
+      act: silu
+      depth_wise: False
+      use_l1: False
+
+yolox_s:
+  backbone:
+    class: YOLOPAFPN
+    init_args:
+      depth: 0.33
+      width: 0.50
+      in_channels: [256, 512, 1024]
+      act: silu
+      depth_wise: False
+  head:
+    class: YOLOXHead
+    init_args:
+      width: 0.50
+      strides: [8, 16, 32]
+      in_channels: [256, 512, 1024]
+      act: silu
+      depth_wise: False
+      use_l1: False
+
+yolox_m:
+  backbone:
+    class: YOLOPAFPN
+    init_args:
+      depth: 0.67
+      width: 0.75
+      in_channels: [256, 512, 1024]
+      act: silu
+      depth_wise: False
+  head:
+    class: YOLOXHead
+    init_args:
+      width: 0.75
+      strides: [8, 16, 32]
+      in_channels: [256, 512, 1024]
+      act: silu
+      depth_wise: False
+      use_l1: False
+    
+yolox_l:
+  backbone:
+    class: YOLOPAFPN
+    init_args:
+      depth: 1.0
+      width: 1.0
+      in_channels: [256, 512, 1024]
+      act: silu
+      depth_wise: False
+  head:
+    class: YOLOXHead
+    init_args:
+      width: 1.0
+      strides: [8, 16, 32]
+      in_channels: [256, 512, 1024]
+      act: silu
+      depth_wise: False
+      use_l1: False
+
+yolox_l:
+  backbone:
+    class: YOLOPAFPN
+    init_args:
+      depth: 1.33
+      width: 1.25
+      in_channels: [256, 512, 1024]
+      act: silu
+      depth_wise: False
+  head:
+    class: YOLOXHead
+    init_args:
+      width: 1.25
+      strides: [8, 16, 32]
+      in_channels: [256, 512, 1024]
+      act: silu
+      depth_wise: False
+      use_l1: False
+
+yolov3:
+  backbone:
+    class: YOLOFPN
+    init_args:
+      depth: 53
+      in_features: ["dark3", "dark4", "dark5"]
+  head:
+    class: YOLOXHead
+    init_args:
+      width: 1.25
+      strides: [8, 16, 32]
+      in_channels: [128, 256, 512]
+      act: silu
+      depth_wise: False
+      use_l1: False
+###################################################################################################
+
+# User defined custom YOLOX architecture. Feel free to change
+yolox_custom:
+  backbone:
+    class: YOLOPAFPN
+    init_args:
+      depth: 0.33
+      width: 0.50
+      in_channels: [256, 512, 1024]
+      act: silu
+      depth_wise: False
+  head:
+    class: YOLOXHead
+    init_args:
+      width: 0.50
+      strides: [8, 16, 32]
+      in_channels: [256, 512, 1024]
+      act: silu
+      depth_wise: False
+      use_l1: True

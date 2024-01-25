@@ -1,0 +1,12 @@
+albumentations>=0.5.2
+imageio>=2.18.0
+matplotlib>=3.5.1
+numpy>=1.22.3
+onnx>=1.11.0
+onnxruntime_gpu>=1.11.0
+opencv_python>=4.6.0.66
+opencv_python_headless>=4.6.0.66
+psutil>=5.9.0
+PyYAML>=6.0
+torch>=1.12.1+cu113
+torchvision>=0.13.1+cu113

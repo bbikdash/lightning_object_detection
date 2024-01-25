@@ -1,0 +1,200 @@
+# @author Bassam Bikdash
+# PROGRAM level args
+# Program arguments (data_path, cluster_email, etc...)
+data:
+  # class_path: data.detection_data_module.FakeModule
+  class_path: data.detection_data_module.DroneNetDataModule              # Path to the Pytorch Lightning DataModule to use for data preparation
+  init_args:
+    nas_training: False                          # Indicates whether the datasets are located on the nas. If true, KEF_ENV will be prepended to the paths defined below: /.../kef_env/ + nas/...
+                                                # If false, specify the absolute paths to the data on your local file system
+    train_datasets:                             # Datasets to use for training
+
+      - InriaBuildingDetection:
+          root: /mnt/data/Datasets/Building_Detection/eo/Inria_Aerial_Image_Labeling_Dataset
+          split: train
+          intermediate_class_mapping:
+            building: building
+
+      - COCODataset:
+          root: /mnt/data/Datasets/COCO
+          split: train2017
+          categories_to_include: ['person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus',
+                                   'train', 'truck', 'bus']
+          intermediate_class_mapping:
+            person: person
+            bicycle: vehicle
+            car: vehicle
+            motorcycle: vehicle
+            airplane: vehicle
+            bus: vehicle
+            train: vehicle
+            truck: vehicle
+            boat: vehicle
+
+      - ETrimsDoorsWindowsDataset:
+          root: /mnt/data/Datasets/Doors_Windows/etrims-db_v1
+          split: train
+          intermediate_class_mapping:
+            window: window
+            door: door
+
+      - HumanCrowdDataset:
+          root: /mnt/data/Datasets/Person_Detection/CrowdHuman
+          split: train
+          intermediate_class_mapping:
+            person: person
+
+      - RoboflowAerialPersonVehDataset:
+          root: /mnt/data/Datasets/Vehicle_Detection/Aerial_Person_Vehicle
+          split: train
+          intermediate_class_mapping:
+            bicycle: vehicle
+            bus: vehicle
+            car: vehicle
+            motorcycle: vehicle
+            truck: vehicle
+            person: person
+
+      - SoccerPlayerDataset:
+          root: /mnt/data/Datasets/Person_Detection/Soccer_Player_Dataset
+          split: train
+          intermediate_class_mapping:
+            player: person
+
+      - UAVVehicleDetection:
+          root: /mnt/data/Datasets/Vehicle_Detection/UAV-Vehicle-Detection-Dataset
+          split: train
+          intermediate_class_mapping:
+            car: vehicle
+            truck: vehicle
+            bus: vehicle
+            trailer: vehicle
+
+    val_datasets:                               # Datasets to use for validation
+      - InriaBuildingDetection:
+          root: /mnt/data/Datasets/Building_Detection/eo/Inria_Aerial_Image_Labeling_Dataset
+          split: val
+          intermediate_class_mapping:
+            building: building
+      
+      - COCODataset:
+          root: /mnt/data/Datasets/COCO
+          split: val2017
+          categories_to_include: ['person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus',
+                                   'train', 'truck', 'bus']
+          intermediate_class_mapping:
+            person: person
+            bicycle: vehicle
+            car: vehicle
+            motorcycle: vehicle
+            airplane: vehicle
+            bus: vehicle
+            train: vehicle
+            truck: vehicle
+            boat: vehicle
+
+      - SoccerPlayerDataset:
+          root: /mnt/data/Datasets/Person_Detection/Soccer_Player_Dataset
+          split: val
+          intermediate_class_mapping:
+            player: person
+
+      - RoboflowAerialPersonVehDataset:
+          root: /mnt/data/Datasets/Vehicle_Detection/Aerial_Person_Vehicle
+          split: val
+          intermediate_class_mapping:
+            bicycle: vehicle
+            bus: vehicle
+            car: vehicle
+            motorcycle: vehicle
+            truck: vehicle
+            person: person
+
+      - UAVVehicleDetection:
+          root: /mnt/data/Datasets/Vehicle_Detection/UAV-Vehicle-Detection-Dataset
+          split: val
+          intermediate_class_mapping:
+            car: vehicle
+            truck: vehicle
+            bus: vehicle
+            trailer: vehicle
+
+    test_datasets:                              # Datasets to use for testing
+      - InriaBuildingDetection:
+          root: /mnt/data/Datasets/Building_Detection/eo/Inria_Aerial_Image_Labeling_Dataset
+          split: val
+          intermediate_class_mapping:
+            building: building
+
+    train_batch_size: 24                        # Batch size during training
+    val_batch_size: 24
+    train_image_size: [640, 640]                # Image shape before input into the network. Set dimension to -1 to keep that dimension as close to the original as possible but a multiple of 32.
+    val_image_size: [640, 640]
+    num_workers: 8
+    verify: False                                # Visualize data and label after loading and before training. Used to verify data augmentations
+    target_class_mapping: &classes ./config/namc_classes.yaml    # Path to yaml file containing a dictionary of class ids and labels. {id_#: label, ...}
+
+ckpt_path: ./logs/yolox_m/version_3/checkpoints/epoch=19-step=80994.ckpt           # Path to weights with which to initialize the model
+
+# Model specific args
+# These arguments will be used in the creation of the model architecture
+model:
+  class_path: lit_yolox.LitYOLOX                # Path to the class of LightningModule of the model. Don't change
+  init_args:
+    architecture: &arch yolox_m                 # Model architecture to use: yolox_<nano, tiny, s, m, l, x, darknet, custom>
+    classes_path: *classes                      # Path to yaml file containing the classes ids and labels that the model will predict. Should match number of classes in dataset. DO NOT CHANGE
+    pretrained: True                            # Load weights pretrained on COCO2017
+    confidence_threshold: 0.25                  # Confidence threshold for inference
+    nms_threshold: 0.45                         # Non-maximal suppression threshold for inference
+
+
+optimizer:
+  class_path: torch.optim.SGD                   # Optimizer. See https://pytorch.org/docs/stable/optim.html for list of available optimizers
+  init_args:
+    lr: 5e-05
+    momentum: 0.9
+    weight_decay: 0.0005
+
+
+lr_scheduler:
+  class_path: torch.optim.lr_scheduler.StepLR   # Learning rate scheduler. See https://pytorch.org/docs/stable/optim.html for list of available schedulers
+  init_args:
+    step_size: 2                                # Step size in number of epochs for learning rate decay
+    gamma: 0.90                                 # Learning rate decay
+
+
+# Training specific args
+# These arguments are parsed internally by pl.Trainer and correspond to basic attributes of the Trainer class
+trainer:
+  max_epochs: 35                                # Number of epochs to train model for. Can/should change
+
+  accelerator: gpu                              # Device to use for training. Can be `cpu`, `gpu`, or `tpu`
+  devices: 1                                    # Number of devices to use for training. -1 uses all available devices on the system
+  precision: 16-mixed
+  val_check_interval: 0.25                      #
+
+  logger:
+    class_path: TensorBoardLogger
+    init_args:
+      save_dir: ./logs                          # Saves metric folders to the following directory. Don't change
+      name: yolox_m                             # Saves current training checkpoints and logs to this dir. This one you can change
+      default_hp_metric: False
+  enable_checkpointing: True
+  callbacks:
+    - class_path: LearningRateMonitor           # No need to change these callbacks unless absolutely necessary
+      init_args:
+        logging_interval: epoch
+    - class_path: ModelCheckpoint
+      init_args:
+        save_top_k: 3                           # Saves the top k weights
+        monitor: val/total_loss                 # that have the lowest validation loss. See lit_yolox.py for logged metrics
+        mode: min                               # One of {min, max}
+        # save_weights_only: True                 # If True, then only the model’s weights will be saved. Otherwise, the optimizer states, lr-scheduler states, etc are added in the checkpoint too.
+        every_n_epochs: 1                       # Checks to save weights every 1 epoch
+    - class_path: TQDMProgressBar               # lightning.pytorch.callbacks.progress.TQDMProgressBar
+      init_args:
+        refresh_rate: 10                        # Updates progress bar after n iterations
+    - class_path: __main__.AlbumentTransformSavingCallback
+    - class_path: __main__.VerifyNumClasses
+    - class_path: __main__.SaveBestWeightDict
+  log_every_n_steps: 20
