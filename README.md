@@ -36,7 +36,7 @@ Verify correct lightning, pytorch, and other dependency installation by running 
 
 YOLOX can be trained for custom object detection tasks if labeled data is provided.
 
-Data should be separated into image and label directories. For example, the dataset for thermal building detection has the following generic structure
+Data should be separated into image and label directories. For example, the datasetd have the following generic structure
 ```
 image_dir/
     image1.png
@@ -49,10 +49,6 @@ label_dir/
 ```
 
 __ATTENTION: Make sure that the albumentations bounding box transformations matches the format of the bounding boxes within the label files (i.e. yolo, albumentations, coco, or pascal_voc). See [this link](https://albumentations.ai/docs/getting_started/bounding_boxes_augmentation/) for clarification.__
-
-Since most of the logic for loading images and labels is similar across different dataset types, it's recommended for the user to refer to the [thermal building dataset](./data/thermal_building_dataset.py) or [uav vehicle detection dataset](./data/uav_vehicle.py) to use as a template for structuring the logic within future dataset classes or data loading operations.
-
-Note that the INRIA EO Building Detection dataset has a different structure so it requires custom logic when writing its Dataset class.
 
 ### Data Augmentations
 Data augmentations are defined in the constructor of the [lightning data module](./data/detection_data_module.py). Change them as necessary here. They will be saved during training with the best set of weights and tensorboard metrics.
