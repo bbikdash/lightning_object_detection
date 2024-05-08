@@ -62,7 +62,6 @@ class DroneNetDataModule(LightningDataModule):
                  target_class_mapping: str):
         """
         Args:
-            nas_training: TODO
             train_datasets: TODO
             val_datasets: TODO
             test_datasets: TODO
@@ -130,11 +129,9 @@ class DroneNetDataModule(LightningDataModule):
 
             A.ToGray(p=0.05),
 
-
             # Brightness transformations
             A.RandomBrightnessContrast(brightness_limit=(-0.1, 0.1), contrast_limit=(-0.1, 0.5), p=0.5),
             A.CLAHE(p=0.15),
-            # A.Blur(blur_limit=(1,5), p=0.5),
             ToTensorV2(),
         ], bbox_params=A.BboxParams(format='yolo', min_area=512, min_visibility=0.4, label_fields=['class_labels']))
 
@@ -149,7 +146,6 @@ class DroneNetDataModule(LightningDataModule):
         self.test_transforms = A.Compose([
             # Geometric transformations
             A.RandomResizedCrop(self.val_image_size[0], self.val_image_size[1], scale=(0.75, 1.0), always_apply=True), # Crop the image first. Reduces computation time when applying optical or elastic distortion
-            # A.CLAHE(always_apply=True),
             ToTensorV2(),
         ], bbox_params=A.BboxParams(format='yolo', min_area=512, min_visibility=0.4, label_fields=['class_labels']))
 
@@ -168,6 +164,18 @@ class DroneNetDataModule(LightningDataModule):
         https://pytorch-lightning.readthedocs.io/en/latest/data/datamodule.html#prepare-data
         """
         pass
+
+    @logger.catch
+    def _construct_dataset(self, dataset_name: str, **dataset_kwargs) -> Dataset:
+
+        class_ = globals().get(dataset_name)
+        if class_ is None:
+            raise KeyError(f"Dataset class name <{dataset_name}> not found! Double check configuration file or imports")
+
+        logger.info(f"Using {class_}")
+        return class_(**dataset_kwargs)
+    
+
 
     @logger.catch
     def _load_datasets(self, datasets: List[Dict], current_transforms: A.Compose) -> List[Dataset]:
