@@ -18,15 +18,8 @@ from bidict import bidict
 from loguru import logger
 import yaml
 
-from utils import visualize_bbox_augmentations
-
-if __name__ == "__main__":
-    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    from coco_dataset import COCODataset
-    from soccer_player_dataset import SoccerPlayerDataset
-    from roboflow_person_vehicle import RoboflowAerialPersonVehDataset
-else:
-    from . import *
+from lightning_object_detection.utils import visualize_bbox_augmentations
+from lightning_object_detection.data import *
 
 def check_type(iterable, tp):
     return all(isinstance(item, tp) for item in iterable)
@@ -57,7 +50,6 @@ class DroneNetDataModule(LightningDataModule):
     """
 
     def __init__(self,
-                 nas_training: bool,
                  train_datasets: List[Dict],
                  val_datasets: List[Dict],
                  test_datasets: List[Dict],
@@ -83,13 +75,6 @@ class DroneNetDataModule(LightningDataModule):
             classes_path: TODO
         """
         super().__init__()
-
-        self.nas_training = nas_training
-        if self.nas_training:
-            logger.warning("User has specified that datasets are located on the NAS")
-            self.KEF_ENV = os.getenv("KEF_ENV")
-            if self.KEF_ENV == None:
-                raise Exception("Set KEF_ENV in order to locate training datasets")
 
         self.train_datasets = train_datasets
         self.valid_datasets = val_datasets
@@ -145,8 +130,6 @@ class DroneNetDataModule(LightningDataModule):
 
             A.ToGray(p=0.05),
 
-            # A.ToGray(always_apply=True),
-            # A.RandomGamma(gamma_limit=(60,100), p=0.5),
 
             # Brightness transformations
             A.RandomBrightnessContrast(brightness_limit=(-0.1, 0.1), contrast_limit=(-0.1, 0.5), p=0.5),
@@ -159,12 +142,7 @@ class DroneNetDataModule(LightningDataModule):
             # Geometric transformations
             A.HorizontalFlip(p=0.5),
             # A.VerticalFlip(p=0.5),
-            # A.RandomRotate90(p=0.5),
             A.RandomResizedCrop(self.val_image_size[0], self.val_image_size[1], scale=(0.75, 1.0), always_apply=True), # Crop the image first. Reduces computation time when applying optical or elastic distortion
-            # A.CLAHE(always_apply=True),
-            # A.CenterCrop(self.val_image_size[0], self.val_image_size[1], always_apply=True),
-            # A.OpticalDistortion(distort_limit=(-0.5, 0.5), shift_limit=(-0.5, 0.5), p=0.75),
-            # A.ToGray(always_apply=True),
             ToTensorV2(),
         ], bbox_params=A.BboxParams(format='yolo', min_area=512, min_visibility=0.4, label_fields=['class_labels']))
 
@@ -172,8 +150,6 @@ class DroneNetDataModule(LightningDataModule):
             # Geometric transformations
             A.RandomResizedCrop(self.val_image_size[0], self.val_image_size[1], scale=(0.75, 1.0), always_apply=True), # Crop the image first. Reduces computation time when applying optical or elastic distortion
             # A.CLAHE(always_apply=True),
-            # A.OpticalDistortion(distort_limit=(-0.5, 0.5), shift_limit=(-0.5, 0.5), p=0.75),
-            # A.ToGray(always_apply=True),
             ToTensorV2(),
         ], bbox_params=A.BboxParams(format='yolo', min_area=512, min_visibility=0.4, label_fields=['class_labels']))
 
@@ -186,7 +162,6 @@ class DroneNetDataModule(LightningDataModule):
         return
 
 
-        
     def prepare_data(self):
         """
         Empty prepare_data method left in intentionally. 
@@ -218,15 +193,6 @@ class DroneNetDataModule(LightningDataModule):
                     "target_class_mapping": self.target_class_mapping,
                 })
                 
-                if self.nas_training:
-                    # ASSERT: User has specified that image/label datasets are located on the nas.
-                    # Set the paths accordingly
-                    if "image_dir" in dirs:
-                        dirs["image_dir"] = os.path.join(self.KEF_ENV, dirs["image_dir"])
-                        dirs["label_dir"] = os.path.join(self.KEF_ENV, dirs["label_dir"])
-                    else:
-                        dirs["root"] = os.path.join(self.KEF_ENV, dirs["root"])
-
                 dataset_kwargs = dirs
 
                 # Instantiate dataset and check that it has a source int-to-string class mapping
@@ -336,38 +302,6 @@ if __name__ == "__main__":
                  'intermediate_class_mapping': {'player': 'person'},
                  'max_labels': 30}
             },
-            # {'COCODataset':
-            #     {'root': '/mnt/data/Datasets/COCO',
-            #      'coco_type': 'train2017',
-            #      'categories_to_include': ['person',
-            #                                'bicycle',
-            #                                'car',
-            #                                'motorcycle',
-            #                                'airplane',
-            #                                'bus',
-            #                                'train',
-            #                                'truck',
-            #                                'bus'],
-            #      'intermediate_class_mapping': {'person': 'person',
-            #                                     'bicycle': 'vehicle',
-            #                                     'car': 'vehicle',
-            #                                     'motorcycle': 'vehicle',
-            #                                     'airplane': 'vehicle',
-            #                                     'bus': 'vehicle',
-            #                                     'train': 'vehicle',
-            #                                     'truck': 'vehicle',
-            #                                     'boat': 'vehicle'},
-            #     }
-            # },
-            # {'RoboflowAerialPersonVehDataset':
-            #     {"root": "/mnt/data/Datasets/Vehicle_Detection/Aerial_Person_Vehicle",
-            #      "split": "train",
-            #      "intermediate_class_mapping": {'bicycle': 'vehicle',
-            #                 'bus': 'vehicle',
-            #                 'car': 'vehicle',
-            #                 'motorcycle': 'vehicle',
-            #                 'truck': 'vehicle',
-            #                 'person': 'person'}}}
         ],
         val_datasets=[
             {'SoccerPlayerDataset': 
